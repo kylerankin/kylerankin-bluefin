@@ -1,0 +1,15 @@
+name: Pinned Fetches Trial
+
+on:
+  pull_request:
+    branches:
+      - testing
+  merge_group:
+
+jobs:
+  pinned-fetches:
+    name: Pinned fetches (trial)
+    uses: projectbluefin/actions/.github/workflows/reusable-pinned-fetches.yml@162948e0209debf90dcd9ff6d5ea6a6138bd5ece
+    with:
+      mode: warn
+      actions_ref: 162948e0209debf90dcd9ff6d5ea6a6138bd5ece
