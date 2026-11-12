@@ -50,14 +50,14 @@ COPY /build_files/base/20-tests.sh /build_files/base/20-tests.sh
 # system_files/shared. Its `just --completions` output is the self-referential
 # `eval "$(JUST_COMPLETE=bash ujust)"` shim, which registers no completion binding,
 # so `ujust <TAB>` completes nothing. Preserve bluefin's self-contained bash and
-# zsh completions before that overlay and restore them after, so they win.
-COPY system_files/shared/usr/share/bash-completion/completions/ujust /__keep/ujust/bash-completion
-COPY system_files/shared/usr/share/zsh/site-functions/_ujust /__keep/ujust/zsh-completion
+# zsh completions and restore them after the common/brew overlays, so they win.
+# The completions live in the build context (system_files), so copy them straight
+# from there after the overlays rather than stashing in an unreadable scratch path.
 COPY --from=common /system_files/shared /system_files/shared
 COPY --from=common /system_files/bluefin /system_files/shared
 COPY --from=brew /system_files /system_files/shared
-COPY /__keep/ujust/bash-completion /system_files/shared/usr/share/bash-completion/completions/ujust
-COPY /__keep/ujust/zsh-completion /system_files/shared/usr/share/zsh/site-functions/_ujust
+COPY system_files/shared/usr/share/bash-completion/completions/ujust /system_files/shared/usr/share/bash-completion/completions/ujust
+COPY system_files/shared/usr/share/zsh/site-functions/_ujust /system_files/shared/usr/share/zsh/site-functions/_ujust
 
 ## bluefin image section
 # hadolint ignore=DL3006
