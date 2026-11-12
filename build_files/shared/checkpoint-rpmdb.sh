@@ -81,7 +81,8 @@ try:
 except sqlite3.Error as exc:
     fail(str(exc))
 finally:
-    conn.close()
+    if conn:
+        conn.close()
 
 # The WAL sidecars must be gone before we copy, so the sibling is a true
 # single-file snapshot of the checkpointed database.
@@ -137,14 +138,15 @@ try:
 except sqlite3.Error as exc:
     fail(str(exc))
 finally:
-    ro.close()
+    if ro:
+        ro.close()
 PYEOF
 
 # `rpm --verifydb` only exists on the Fedora/bluefin build toolchain, never on
 # the plain Ubuntu unit-test runner, so guard it: it is a no-op in unit tests
 # and a real integrity gate in the image build.
 if command -v rpm >/dev/null 2>&1; then
-    rpm --verifydb "${RPMDB_PATH}"
+    rpm --verifydb --dbpath "$(dirname "${RPMDB_PATH}")"
 fi
 
 echo "::endgroup::"

@@ -110,6 +110,7 @@ print(db.execute("SELECT hnum, hex(blob) FROM Packages").fetchone())
     # it rather than ship a truncated layer to the next stage.
     python3 - "${RPMDB_PATH}" <<'PYEOF'
 import os
+import sys
 
 path = sys.argv[1]
 pages = os.path.getsize(path) // 4096
