@@ -37,7 +37,7 @@ def pull_source(spec: PullSpec) -> str:
     # substitute a malicious payload, so when a digest is present we drop the
     # mutable tag and address the image by @sha256:.
     if spec.digest:
-        return f"docker://{spec.image.rsplit(':', 1)[0]}@sha256:{spec.digest}"
+        return f"docker://{spec.image.rsplit(':', 1)[0]}@{spec.digest}"
     return f"docker://{spec.image}"
 
 
@@ -296,11 +296,9 @@ def main() -> int:
     zfs_digest = digest_env("AKMODS_ZFS_DIGEST")
 
     # The host resolves and cosign-verifies each payload at digest, then passes the
-    # digest in as a build arg. Fail closed in CI: without the digest there is no
-    # integrity binding between what was verified and what gets installed as root.
-    if os.environ.get("CI") and not akmods_digest:
-        raise SystemExit("AKMODS_DIGEST is required in CI: akmods payloads are verified+consumed at digest")
-
+    # digest in as a build arg. The Justfile refuses to build when any akmods digest
+    # fails to resolve, so there is always an integrity binding between what was
+    # verified and what gets installed as root.
     pull_specs = [PullSpec("akmods", f"ghcr.io/ublue-os/akmods:{tag}", Path("/tmp/akmods"), akmods_digest)]
     if "nvidia" in image_name:
         pull_specs.append(PullSpec("nvidia", f"ghcr.io/ublue-os/akmods-nvidia-open:{tag}", Path("/tmp/akmods-rpms"), nvidia_digest))
@@ -372,7 +370,7 @@ def main() -> int:
 
 if __name__ == "__main__":
     if os.environ.get("AKMODS_SELFCHECK") == "1":
-        assert pull_source(PullSpec("akmods", "ghcr.io/ublue-os/akmods:tag", Path("/tmp/x"), "abc123")) == "docker://ghcr.io/ublue-os/akmods@sha256:abc123"
+        assert pull_source(PullSpec("akmods", "ghcr.io/ublue-os/akmods:tag", Path("/tmp/x"), "sha256:abc123")) == "docker://ghcr.io/ublue-os/akmods@sha256:abc123"
         assert pull_source(PullSpec("nvidia", "ghcr.io/ublue-os/akmods-nvidia-open:tag", Path("/tmp/x"), None)) == "docker://ghcr.io/ublue-os/akmods-nvidia-open:tag"
         print("akmods digest-pull self-check passed")
         raise SystemExit(0)

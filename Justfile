@@ -185,15 +185,13 @@ build $image="bluefin" $tag="testing" $flavor="main" rechunk="0" ghcr="0" pipeli
     AKMODS_DIGEST=""
     AKMODS_ZFS_DIGEST=""
     AKMODS_NVIDIA_DIGEST=""
-    if akmods_digest=$(resolve_akmods_digest "ghcr.io/ublue-os/akmods:${akmods_flavor}-${fedora_version}-${kernel_release}"); then
-        if [[ -n "${akmods_digest:-}" ]]; then
-            AKMODS_DIGEST="${akmods_digest}"
-            {{ just }} verify-container "akmods:${akmods_flavor}-${fedora_version}-${kernel_release}@${AKMODS_DIGEST}"
-        else
-            echo "ERROR: Could not resolve akmods digest. Refusing to build without a pinned, verified akmods payload."
-            exit 1
-        fi
+    akmods_digest=$(resolve_akmods_digest "ghcr.io/ublue-os/akmods:${akmods_flavor}-${fedora_version}-${kernel_release}")
+    if [[ -z "${akmods_digest:-}" ]]; then
+        echo "ERROR: Could not resolve akmods digest. Refusing to build without a pinned, verified akmods payload."
+        exit 1
     fi
+    AKMODS_DIGEST="${akmods_digest}"
+    {{ just }} verify-container "akmods:${akmods_flavor}-${fedora_version}-${kernel_release}@${AKMODS_DIGEST}"
     if [[ "${akmods_flavor}" =~ coreos ]]; then
         if akmods_zfs_digest=$(resolve_akmods_digest "ghcr.io/ublue-os/akmods-zfs:${akmods_flavor}-${fedora_version}-${kernel_release}"); then
             if [[ -n "${akmods_zfs_digest:-}" ]]; then
